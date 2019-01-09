@@ -1,0 +1,171 @@
+<!--
+  Copyright (c) 2006-2014, JGraph Ltd
+  
+  Hierarchical Layout example for mxGraph. This example demonstrates the
+  use of the hierarchical and organic layouts. Note that the hierarchical
+  layout requires another script tag in the head of the page.
+-->
+<html>
+<head>
+	<title>Hierarchical Layout example for mxGraph</title>
+	<meta charset="UTF-8">
+
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '../src';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+
+	<!-- Example code -->
+	<script type="text/javascript">
+
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is
+				// not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+				
+				// Adds rubberband selection
+				new mxRubberband(graph);
+				
+				// Changes the default vertex style in-place
+				var style = graph.getStylesheet().getDefaultVertexStyle();
+				style[mxConstants.STYLE_PERIMETER] = mxPerimeter.RectanglePerimeter;
+				style[mxConstants.STYLE_GRADIENTCOLOR] = 'white';
+				style[mxConstants.STYLE_PERIMETER_SPACING] = 6;
+				style[mxConstants.STYLE_ROUNDED] = true;
+				style[mxConstants.STYLE_SHADOW] = true;
+				
+				style = graph.getStylesheet().getDefaultEdgeStyle();
+				style[mxConstants.STYLE_ROUNDED] = true;
+
+				// Creates a layout algorithm to be used
+				// with the graph
+				var layout = new mxRadialTreeLayout(graph);
+				
+				var parent = graph.getDefaultParent();
+			
+				// Load cells and layouts the graph
+				graph.getModel().beginUpdate();
+				try
+				{
+
+					var v1 = graph.insertVertex(parent, null, 'Hello,', 20, 20, 80, 30);
+					var v2 = graph.insertVertex(parent, null, 'World!', 200, 200, 80, 30);
+					var e1 = graph.insertEdge(parent, null, '', v1, v2);
+
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+
+				if (mxClient.IS_QUIRKS)
+				{
+					document.body.style.overflow = 'hidden';
+					new mxDivResizer(container);
+				}
+
+				//////////////////////////
+
+
+				var addVertex = function(icon, w, h, style)
+				{
+					var vertex = new mxCell(null, new mxGeometry(0, 0, w, h), style);
+					vertex.setVertex(true);
+
+					addToolbarItem(graph, toolbar, vertex, icon);
+				};
+				addVertex('editors/images/shape-kaishi.png', 100, 40, 'shape=rounded;rounded=1');
+				addVertex('editors/images/shape-fangyin.png', 100, 40, 'shape=rounded;rounded=1');
+				addVertex('editors/images/shape-caidan.png', 100, 40, 'shape=rounded;rounded=1');
+				addVertex('editors/images/shape-zhuanjie.png', 100, 40, 'shape=rounded;rounded=1');
+				addVertex('editors/images/shape-shouhao.png', 100, 40, 'shape=rounded;rounded=1');
+				addVertex('editors/images/shape-shibie.png', 100, 40, 'shape=rounded;rounded=1');
+				addVertex('editors/images/shape-panduan.png', 100, 40, 'shape=rounded;rounded=1');
+				addVertex('editors/images/shape-ziliucheng.png', 100, 40, 'shape=rounded;rounded=1');
+				addVertex('editors/images/shape-guaduan.png', 100, 40, 'shape=rounded;rounded=1');
+
+				// Inserts a cell at the given location
+				var funct = function(graph, evt, target, x, y)
+				{
+					var cell = new mxCell('张三', new mxGeometry(0, 0, 120, 40));
+					cell.vertex = true;
+					var cells = graph.importCells([cell], x, y, target);
+
+					if (cells != null && cells.length > 0)
+					{
+						graph.scrollCellToVisible(cells[0]);
+						graph.setSelectionCells(cells);
+					}
+				};
+
+				// Creates a DOM node that acts as the drag source
+				var img = mxUtils.createImage('editors/images/icons48/gear.png');
+				img.style.width = '48px';
+				img.style.height = '48px';
+				document.body.appendChild(img);
+
+				// Disables built-in DnD in IE (this is needed for cross-frame DnD, see below)
+				if (mxClient.IS_IE)
+				{
+					mxEvent.addListener(img, 'dragstart', function(evt)
+					{
+						evt.returnValue = false;
+					});
+				}
+
+				// Creates the element that is being for the actual preview.
+				var dragElt = document.createElement('div');
+				dragElt.style.border = 'dashed black 1px';
+				dragElt.style.width = '120px';
+				dragElt.style.height = '40px';
+
+				// Drag source is configured to use dragElt for preview and as drag icon
+				// if scalePreview (last) argument is true. Dx and dy are null to force
+				// the use of the defaults. Note that dx and dy are only used for the
+				// drag icon but not for the preview.
+				var ds = mxUtils.makeDraggable(img, graph, funct, dragElt, null, null, graph.autoscroll, true);
+
+
+
+
+				// Redirects feature to global switch. Note that this feature should only be used
+				// if the the x and y arguments are used in funct to insert the cell.
+				ds.isGuidesEnabled = function()
+				{
+					return graph.graphHandler.guidesEnabled;
+				};
+
+				// Restores original drag icon while outside of graph
+				ds.createDragElement = mxDragSource.prototype.createDragElement;
+			}
+		};
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))" style="margin:4px;">
+
+	<!-- Creates a container for the graph with a grid wallpaper. Make sure to define the position
+		and overflow attributes! See comments on the adding of the size-listener on line 54 ff!  -->
+	<div id="graphContainer"
+		style="position:absolute;overflow:auto;top:60px;bottom:0px;left:0px;right:0px;border-top:gray 1px solid;background:url('editors/images/graph-bg.jpg');">
+	</div>
+<img src="">
+</body>
+</html>
