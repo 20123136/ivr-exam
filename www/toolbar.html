@@ -24,6 +24,8 @@
 		// from the onLoad event handler of the document (see below).
 		function main()
 		{
+			mxConnectionHandler.prototype.connectImage = new mxImage('images/connector.gif', 16, 16);
+
 			// Checks if browser is supported
 			if (!mxClient.isBrowserSupported())
 			{
@@ -33,33 +35,14 @@
 			}
 			else
 			{
-				// Creates the div for the toolbar 最左边的 toolbar
-				var tbContainer = document.createElement('div');
-				tbContainer.style.position = 'absolute';
-				tbContainer.style.overflow = 'auto';
-				tbContainer.style.top = '2px';
-				tbContainer.style.left = '30px';
-
-
-				document.body.appendChild(tbContainer);
+				// 顶部的 toolbar
+				var tbContainer = document.getElementById("toptoolbar");
 				// Creates new toolbar with event processing
 				var toolbar = new mxToolbar(tbContainer);
-				toolbar.enabled = true
+				toolbar.enabled = false;
 				
-				// Creates the div for the graph 右边的画布部分
-				container = document.createElement('div');
-				container.style.position = 'absolute';
-				container.style.overflow = 'auto';
-				container.style.top = '60px';
-				container.style.bottom = '0px';
-				container.style.left = '0px';
-				container.style.right = '0px';
-				container.style['border-top'] = '10px solid rgb(229, 234, 238)';
-				container.style.background = 'url("editors/images/graph-bg.jpg")';
-				container.style['touch-action'] = 'none';
-
-				document.body.appendChild(container);
-				
+				// 画布部分
+				var container = document.getElementById("graphcontainer");
 				// Workaround for Internet Explorer ignoring certain styles
 				if (mxClient.IS_QUIRKS)
 				{
@@ -73,6 +56,108 @@
 				var model = new mxGraphModel();
 				var graph = new mxGraph(container, model);
 				graph.dropEnabled = true;
+
+				var parent = graph.getDefaultParent();
+
+				// Load cells and layouts the graph
+				graph.getModel().beginUpdate();
+				try
+				{
+					var doc = mxUtils.createXmlDocument();
+					var obj = doc.createElement('UserObject');
+					obj.setAttribute('title', '切入营销，介绍业务');
+					obj.setAttribute('nodeid', '啊啊啊啊');
+
+					var v1 = graph.insertVertex(parent, null, '开始,', 200, 20, 130, 60, 'shape=rounded;rounded=1');
+					var v2 = graph.insertVertex(parent, null, 'World!', 200, 200, 130, 60, 'shape=rounded;rounded=1');
+					var v2 = graph.insertVertex(parent, null, obj, 200, 200, 130, 60, 'shape=rounded;rounded=1');
+					var e1 = graph.insertEdge(parent, null, '', v1, v2);
+
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+
+				///////////////////////////////////////////----/////////////////////////////////////////////////////////////
+
+				// Overrides method to store a cell label in the model
+				var cellLabelChanged = graph.cellLabelChanged;
+				graph.cellLabelChanged = function(cell, newValue, autoSize)
+				{
+					if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
+					{
+						// Clones the value for correct undo/redo
+						var elt = cell.value.cloneNode(true);
+						elt.setAttribute('title', newValue);
+						newValue = elt;
+					}
+					cellLabelChanged.apply(this, arguments);
+				};
+
+				// 双击后文本框内展示的内容
+				var getEditingValue = graph.getEditingValue;
+				graph.getEditingValue = function(cell)
+				{
+					if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
+					{
+						return cell.getAttribute('title');
+					}
+				};
+
+				// Adds optional caching for the HTML label
+				var cached = true;
+
+				if (cached)
+				{
+					// Ignores cached label in codec
+					mxCodecRegistry.getCodec(mxCell).exclude.push('div');
+
+					// Invalidates cached labels
+					graph.model.setValue = function(cell, value)
+					{
+						cell.div = null;
+						mxGraphModel.prototype.setValue.apply(this, arguments);
+					};
+				}
+
+				// Overrides method to provide a cell label in the display
+				graph.convertValueToString = function(cell)
+				{
+					if (cached && cell.div != null)
+					{
+						// Uses cached label
+						return cell.div;
+					}
+					else if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
+					{
+						var div = document.createElement('div');
+						//div.style.marginTop = "-10px";
+						var img = document.createElement('img');
+						img.setAttribute('src', 'editors/images/fangyin.png');
+						div.appendChild(img);
+
+						var span = document.createElement('span');
+						span.innerText = cell.getAttribute('title');
+						div.appendChild(span);
+						mxUtils.br(div);
+
+						var span2 = document.createElement('span');
+						span2.innerText = cell.getAttribute('nodeid');
+						div.appendChild(span2);
+
+						if (cached)
+						{
+							// Caches label
+							cell.div = div;
+						}
+
+						return div;
+					}
+
+					return cell.value;
+				};
 
 				///////////////////////////--- 节点上的删除操作 start ---///////////////////////////
 				// Specifies the URL and size of the new control
@@ -194,17 +279,15 @@
 					addToolbarItem(graph, toolbar, vertex, icon);
 				};
 
-				addVertex('', 'editors/images/shape-kaishi.png', 100, 40, 'shape=rounded;rounded=1');
-				addVertex('放音', 'editors/images/shape-fangyin.png', 100, 40, 'shape=rounded;rounded=1');
-				addVertex('菜单', 'editors/images/shape-caidan.png', 100, 40, 'shape=rounded;rounded=1');
-				addVertex('转接', 'editors/images/shape-zhuanjie.png', 100, 40, 'shape=rounded;rounded=1');
-				addVertex('收号', 'editors/images/shape-shouhao.png', 100, 40, 'shape=rounded;rounded=1');
-				addVertex('识别', 'editors/images/shape-shibie.png', 100, 40, 'shape=rounded;rounded=1');
-				addVertex('判断', 'editors/images/shape-panduan.png', 100, 40, 'shape=rounded;rounded=1');
-				addVertex('子流程', 'editors/images/shape-ziliucheng.png', 100, 40, 'shape=rounded;rounded=1');
-				addVertex('挂断', 'editors/images/shape-guaduan.png', 100, 40, 'shape=rounded;rounded=1');
-
-
+				addVertex('开始', 'editors/images/shape-kaishi.png', 130, 60, 'shape=rounded;rounded=1');
+				addVertex('放音', 'editors/images/shape-fangyin.png', 130, 60, 'shape=rounded;rounded=1');
+				addVertex('菜单', 'editors/images/shape-caidan.png', 130, 60, 'shape=rounded;rounded=1');
+				addVertex('转接', 'editors/images/shape-zhuanjie.png', 130, 60, 'shape=rounded;rounded=1');
+				addVertex('收号', 'editors/images/shape-shouhao.png', 130, 60, 'shape=rounded;rounded=1');
+				addVertex('识别', 'editors/images/shape-shibie.png', 130, 60, 'shape=rounded;rounded=1');
+				addVertex('判断', 'editors/images/shape-panduan.png', 130, 60, 'shape=rounded;rounded=1');
+				addVertex('子流程', 'editors/images/shape-ziliucheng.png', 130, 60, 'shape=rounded;rounded=1');
+				addVertex('挂断', 'editors/images/shape-guaduan.png', 130, 60, 'shape=rounded;rounded=1');
 			}
 		}
 
@@ -235,18 +318,7 @@
 
 <!-- Calls the main function after the page has loaded. Container is dynamically created. -->
 <body onload="main();" style="margin:0px;height:100%;">
-<!--<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
-	<tr>
-		<td id="toolbar" height="80px" style="background:#7F7F7F;padding:10px;">
-		</td>
-	</tr>
-	<tr>
-		<td width="100%">
-			<div id="graph" style="overflow:auto;width:100%;height:100%;">
-			</div>
-		</td>
-	</tr>
-</table>-->
-
+<div id="toptoolbar" style="position: absolute; overflow: auto; top: 2px; left: 30px;"></div>
+<div id="graphcontainer" style="position: absolute; overflow: auto; top: 60px; bottom: 0px; left: 0px; right: 0px; border-top: 10px solid rgb(229, 234, 238); background: url('editors/images/graph-bg.jpg'); touch-action: none;"></div>
 </body>
 </html>
