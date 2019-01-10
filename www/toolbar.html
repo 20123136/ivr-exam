@@ -55,109 +55,9 @@
 				// using the fastest rendering available on the browser
 				var model = new mxGraphModel();
 				var graph = new mxGraph(container, model);
+				graph.setPanning(true);
 				graph.dropEnabled = true;
 
-				var parent = graph.getDefaultParent();
-
-				// Load cells and layouts the graph
-				graph.getModel().beginUpdate();
-				try
-				{
-					var doc = mxUtils.createXmlDocument();
-					var obj = doc.createElement('UserObject');
-					obj.setAttribute('title', '切入营销，介绍业务');
-					obj.setAttribute('nodeid', '啊啊啊啊');
-
-					var v1 = graph.insertVertex(parent, null, '开始,', 200, 20, 130, 60, 'shape=rounded;rounded=1');
-					var v2 = graph.insertVertex(parent, null, 'World!', 200, 200, 130, 60, 'shape=rounded;rounded=1');
-					var v2 = graph.insertVertex(parent, null, obj, 200, 200, 130, 60, 'shape=rounded;rounded=1');
-					var e1 = graph.insertEdge(parent, null, '', v1, v2);
-
-				}
-				finally
-				{
-					// Updates the display
-					graph.getModel().endUpdate();
-				}
-
-				///////////////////////////////////////////----/////////////////////////////////////////////////////////////
-
-				// Overrides method to store a cell label in the model
-				var cellLabelChanged = graph.cellLabelChanged;
-				graph.cellLabelChanged = function(cell, newValue, autoSize)
-				{
-					if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
-					{
-						// Clones the value for correct undo/redo
-						var elt = cell.value.cloneNode(true);
-						elt.setAttribute('title', newValue);
-						newValue = elt;
-					}
-					cellLabelChanged.apply(this, arguments);
-				};
-
-				// 双击后文本框内展示的内容
-				var getEditingValue = graph.getEditingValue;
-				graph.getEditingValue = function(cell)
-				{
-					if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
-					{
-						return cell.getAttribute('title');
-					}
-				};
-
-				// Adds optional caching for the HTML label
-				var cached = true;
-
-				if (cached)
-				{
-					// Ignores cached label in codec
-					mxCodecRegistry.getCodec(mxCell).exclude.push('div');
-
-					// Invalidates cached labels
-					graph.model.setValue = function(cell, value)
-					{
-						cell.div = null;
-						mxGraphModel.prototype.setValue.apply(this, arguments);
-					};
-				}
-
-				// Overrides method to provide a cell label in the display
-				graph.convertValueToString = function(cell)
-				{
-					if (cached && cell.div != null)
-					{
-						// Uses cached label
-						return cell.div;
-					}
-					else if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
-					{
-						var div = document.createElement('div');
-						//div.style.marginTop = "-10px";
-						var img = document.createElement('img');
-						img.setAttribute('src', 'editors/images/fangyin.png');
-						div.appendChild(img);
-
-						var span = document.createElement('span');
-						span.innerText = cell.getAttribute('title');
-						div.appendChild(span);
-						mxUtils.br(div);
-
-						var span2 = document.createElement('span');
-						span2.innerText = cell.getAttribute('nodeid');
-						div.appendChild(span2);
-
-						if (cached)
-						{
-							// Caches label
-							cell.div = div;
-						}
-
-						return div;
-					}
-
-					return cell.value;
-				};
 
 				///////////////////////////--- 节点上的删除操作 start ---///////////////////////////
 				// Specifies the URL and size of the new control
@@ -249,17 +149,100 @@
 					}
 				};
 				//--------------------------------  节点上的删除操作 end --------------------------------
-				
+
+
+				var doc = mxUtils.createXmlDocument();
+				var obj = doc.createElement('UserObject');
+				obj.setAttribute('title', '切入营销，介绍业务');
+				obj.setAttribute('nodeid', '啊啊啊啊');
+
+				// Adds optional caching for the HTML label
+				var cached = true;
+
+				if (cached)
+				{
+					// Ignores cached label in codec
+					mxCodecRegistry.getCodec(mxCell).exclude.push('div');
+
+					// Invalidates cached labels
+					graph.model.setValue = function(cell, value)
+					{
+						cell.div = null;
+						mxGraphModel.prototype.setValue.apply(this, arguments);
+					};
+				}
+
+				// Overrides method to provide a cell label in the display
+				graph.convertValueToString = function(cell)
+				{
+					if (cached && cell.div != null)
+					{
+						// Uses cached label
+						return cell.div;
+					}
+					else if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
+					{
+						var div = document.createElement('div');
+						div.style.marginTop = "-10px";
+						var img = document.createElement('img');
+						img.setAttribute('src', 'editors/images/fangyin.png');
+						div.appendChild(img);
+
+						var span = document.createElement('span');
+						span.innerText = cell.getAttribute('title');
+						div.appendChild(span);
+						mxUtils.br(div);
+
+						var span2 = document.createElement('span');
+						span2.innerText = cell.getAttribute('nodeid');
+						div.appendChild(span2);
+
+						if (cached)
+						{
+							// Caches label
+							cell.div = div;
+						}
+
+						return div;
+					}
+
+					return cell.value;
+				};
+
+				// Overrides method to store a cell label in the model
+				var cellLabelChanged = graph.cellLabelChanged;
+				graph.cellLabelChanged = function(cell, newValue, autoSize)
+				{
+					if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
+					{
+						// Clones the value for correct undo/redo
+						var elt = cell.value.cloneNode(true);
+						elt.setAttribute('title', newValue);
+						newValue = elt;
+					}
+					cellLabelChanged.apply(this, arguments);
+				};
+
+				// 双击后文本框内展示的内容
+				var getEditingValue = graph.getEditingValue;
+				graph.getEditingValue = function(cell)
+				{
+					if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
+					{
+						return cell.getAttribute('title');
+					}
+				};
+
 				// Matches DnD inside the graph
 				mxDragSource.prototype.getDropTarget = function(graph, x, y)
 				{
 					var cell = graph.getCellAt(x, y);
-					
+
 					if (!graph.isValidDropTarget(cell))
 					{
 						cell = null;
 					}
-					
+
 					return cell;
 				};
 
@@ -267,9 +250,32 @@
 				graph.setConnectable(true);
 				graph.setMultigraph(false);
 
+
+				////////////////////////////////////////////////////////////////////////////////
 				// Stops editing on enter or escape keypress 按Enter或Escape键时停止编辑
 				var keyHandler = new mxKeyHandler(graph);
 				var rubberband = new mxRubberband(graph);
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+
+				// Load cells and layouts the graph
+				graph.getModel().beginUpdate();
+				try
+				{
+					var v1 = graph.insertVertex(parent, null, '开始,', 200, 20, 130, 60, 'shape=rounded;rounded=1');
+					var v2 = graph.insertVertex(parent, null, 'World!', 200, 200, 130, 60, 'shape=rounded;rounded=1');
+					var v2 = graph.insertVertex(parent, null, obj, 200, 200, 130, 60, 'shape=rounded;rounded=1');
+					var e1 = graph.insertEdge(parent, null, '', v1, v2);
+
+				}
+				finally
+				{
+					// Updates the display
+					graph.getModel().endUpdate();
+				}
+
+				///////////////////////////////////////////----/////////////////////////////////////////////////////////////
 				
 				var addVertex = function(text, icon, w, h, style)
 				{
