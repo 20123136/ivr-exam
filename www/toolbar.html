@@ -16,6 +16,7 @@
 
 	<!-- Loads and initializes the library -->
 	<script type="text/javascript" src="../src/js/mxClient.js"></script>
+	<script type="text/javascript" src="myapp.js"></script>
 
 	<!-- Example code -->
 	<script type="text/javascript">
@@ -152,9 +153,15 @@
 
 
 				var doc = mxUtils.createXmlDocument();
+				var start = doc.createElement('UserObject');
+				start.setAttribute('type', MYAPP.nodeType.start);
+				start.setAttribute('title', "开始");
+				start.setAttribute('nodeid', '节点ID：KS-001');
+
 				var obj = doc.createElement('UserObject');
+				obj.setAttribute('type', MYAPP.nodeType.fangyin);
 				obj.setAttribute('title', '切入营销，介绍业务');
-				obj.setAttribute('nodeid', '啊啊啊啊');
+				obj.setAttribute('nodeid', '节点ID：KS-002');
 
 				// Adds optional caching for the HTML label
 				var cached = true;
@@ -183,19 +190,24 @@
 					else if (mxUtils.isNode(cell.value) && cell.value.nodeName.toLowerCase() == 'userobject')
 					{
 						var div = document.createElement('div');
-						div.style.marginTop = "-10px";
+						div.style.marginTop = "0px";
 						var img = document.createElement('img');
-						img.setAttribute('src', 'editors/images/fangyin.png');
+						var type = cell.value.getAttribute("type");
+						img.setAttribute('src', 'images/node-type-imgs/' + type + MYAPP.png);
 						div.appendChild(img);
 
-						var span = document.createElement('span');
-						span.innerText = cell.getAttribute('title');
-						div.appendChild(span);
+						if(MYAPP.nodeType.start === type){
+							img.style['margin-bottom'] = '5px';
+						}else{
+							var title_span = document.createElement('span');
+							title_span.innerText = cell.getAttribute('title');
+							div.appendChild(title_span);
+						}
 						mxUtils.br(div);
 
-						var span2 = document.createElement('span');
-						span2.innerText = cell.getAttribute('nodeid');
-						div.appendChild(span2);
+						var nodeid_span = document.createElement('span');
+						nodeid_span.innerText = cell.getAttribute('nodeid');
+						div.appendChild(nodeid_span);
 
 						if (cached)
 						{
@@ -231,29 +243,15 @@
 					{
 						return cell.getAttribute('title');
 					}
-				};
-
-				// Matches DnD inside the graph
-				mxDragSource.prototype.getDropTarget = function(graph, x, y)
-				{
-					var cell = graph.getCellAt(x, y);
-
-					if (!graph.isValidDropTarget(cell))
-					{
-						cell = null;
-					}
-
-					return cell;
+					return cell.value;
 				};
 
 				// Enables new connections in the graph
 				graph.setConnectable(true);
-				graph.setMultigraph(false);
-
 
 				////////////////////////////////////////////////////////////////////////////////
 				// Stops editing on enter or escape keypress 按Enter或Escape键时停止编辑
-				var keyHandler = new mxKeyHandler(graph);
+				//var keyHandler = new mxKeyHandler(graph);
 				var rubberband = new mxRubberband(graph);
 				// Gets the default parent for inserting new cells. This
 				// is normally the first child of the root (ie. layer 0).
@@ -263,9 +261,9 @@
 				graph.getModel().beginUpdate();
 				try
 				{
-					var v1 = graph.insertVertex(parent, null, '开始,', 200, 20, 130, 60, 'shape=rounded;rounded=1');
+					var v1 = graph.insertVertex(parent, null, start, 200, 20, 130, 60, 'shape=rounded;rounded=1');
 					var v2 = graph.insertVertex(parent, null, 'World!', 200, 200, 130, 60, 'shape=rounded;rounded=1');
-					var v2 = graph.insertVertex(parent, null, obj, 200, 200, 130, 60, 'shape=rounded;rounded=1');
+					var v3 = graph.insertVertex(parent, null, obj, 400, 200, 130, 60, 'shape=rounded;rounded=1');
 					var e1 = graph.insertEdge(parent, null, '', v1, v2);
 
 				}
@@ -276,7 +274,7 @@
 				}
 
 				///////////////////////////////////////////----/////////////////////////////////////////////////////////////
-				
+
 				var addVertex = function(text, icon, w, h, style)
 				{
 					var vertex = new mxCell(text, new mxGeometry(0, 0, w, h), style);
@@ -284,16 +282,15 @@
 				
 					addToolbarItem(graph, toolbar, vertex, icon);
 				};
-
-				addVertex('开始', 'editors/images/shape-kaishi.png', 130, 60, 'shape=rounded;rounded=1');
-				addVertex('放音', 'editors/images/shape-fangyin.png', 130, 60, 'shape=rounded;rounded=1');
-				addVertex('菜单', 'editors/images/shape-caidan.png', 130, 60, 'shape=rounded;rounded=1');
-				addVertex('转接', 'editors/images/shape-zhuanjie.png', 130, 60, 'shape=rounded;rounded=1');
-				addVertex('收号', 'editors/images/shape-shouhao.png', 130, 60, 'shape=rounded;rounded=1');
-				addVertex('识别', 'editors/images/shape-shibie.png', 130, 60, 'shape=rounded;rounded=1');
-				addVertex('判断', 'editors/images/shape-panduan.png', 130, 60, 'shape=rounded;rounded=1');
-				addVertex('子流程', 'editors/images/shape-ziliucheng.png', 130, 60, 'shape=rounded;rounded=1');
-				addVertex('挂断', 'editors/images/shape-guaduan.png', 130, 60, 'shape=rounded;rounded=1');
+				var imgsrc = "images/node-type-imgs/shape-";
+				addVertex('放音', imgsrc + MYAPP.nodeType.fangyin + MYAPP.png, 130, 60, 'shape=rounded;rounded=1');
+				addVertex('菜单', imgsrc + MYAPP.nodeType.caidan + MYAPP.png, 130, 60, 'shape=rounded;rounded=1');
+				addVertex('转接', imgsrc + MYAPP.nodeType.zhuanjie + MYAPP.png, 130, 60, 'shape=rounded;rounded=1');
+				addVertex('收号', imgsrc + MYAPP.nodeType.shouhao + MYAPP.png, 130, 60, 'shape=rounded;rounded=1');
+				addVertex('识别', imgsrc + MYAPP.nodeType.shibie + MYAPP.png, 130, 60, 'shape=rounded;rounded=1');
+				addVertex('判断', imgsrc + MYAPP.nodeType.panduan + MYAPP.png, 130, 60, 'shape=rounded;rounded=1');
+				addVertex('子流程', imgsrc + MYAPP.nodeType.ziliucheng + MYAPP.png, 130, 60, 'shape=rounded;rounded=1');
+				addVertex('挂断', imgsrc + MYAPP.nodeType.guaduan + MYAPP.png, 130, 60, 'shape=rounded;rounded=1');
 			}
 		}
 
